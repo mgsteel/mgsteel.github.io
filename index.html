@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>M&G Steel Projects – Invoice Generator</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <header class="app-header">
+      <img src="logo.jpeg" alt="M&G Steel Projects logo" class="app-logo" />
+      <h1>Invoice Generator</h1>
+    </header>
+
+    <!-- ── FORM ─────────────────────────────────────────────── -->
+    <form id="invoiceForm" class="form-card" novalidate>
+
+      <!-- Invoice meta -->
+      <section class="form-section">
+        <h2 class="section-title">Invoice Details</h2>
+        <div class="grid grid-4">
+          <label class="field">
+            <span>Invoice No.</span>
+            <input type="text" id="invoiceNo" placeholder="INV-001" required />
+          </label>
+          <label class="field">
+            <span>Date</span>
+            <input type="date" id="invoiceDate" required />
+          </label>
+          <label class="field">
+            <span>Due Date</span>
+            <input type="date" id="dueDate" required />
+          </label>
+          <label class="field">
+            <span>PO Number</span>
+            <input type="text" id="poNumber" placeholder="PO-12345" />
+          </label>
+        </div>
+      </section>
+
+      <!-- Bill To + Project Info -->
+      <div class="grid grid-2 gap-lg">
+        <section class="form-section">
+          <h2 class="section-title">Bill To</h2>
+          <div class="stack">
+            <label class="field">
+              <span>Company Name</span>
+              <input type="text" id="billCompany" required />
+            </label>
+            <label class="field">
+              <span>Contact Name</span>
+              <input type="text" id="billContact" />
+            </label>
+            <label class="field">
+              <span>Address</span>
+              <textarea id="billAddress" rows="2"></textarea>
+            </label>
+            <label class="field">
+              <span>Phone</span>
+              <input type="tel" id="billPhone" />
+            </label>
+            <label class="field">
+              <span>Email</span>
+              <input type="email" id="billEmail" />
+            </label>
+          </div>
+        </section>
+
+        <section class="form-section">
+          <h2 class="section-title">Project Information</h2>
+          <div class="stack">
+            <label class="field">
+              <span>Project Name</span>
+              <input type="text" id="projectName" required />
+            </label>
+            <label class="field">
+              <span>Project Location</span>
+              <input type="text" id="projectLocation" />
+            </label>
+            <label class="field">
+              <span>Description of Work</span>
+              <textarea id="projectDescription" rows="3"></textarea>
+            </label>
+          </div>
+        </section>
+      </div>
+
+      <!-- Line Items -->
+      <section class="form-section">
+        <h2 class="section-title">Line Items</h2>
+        <div class="table-wrapper">
+          <table id="lineItemsTable">
+            <thead>
+              <tr>
+                <th class="col-desc">Description</th>
+                <th class="col-qty">Qty</th>
+                <th class="col-unit">Unit</th>
+                <th class="col-price">Unit Price</th>
+                <th class="col-amount">Amount</th>
+                <th class="col-action" aria-label="Actions"></th>
+              </tr>
+            </thead>
+            <tbody id="lineItemsBody">
+              <!-- rows injected by JS -->
+            </tbody>
+          </table>
+        </div>
+        <button type="button" id="addRowBtn" class="btn btn-outline">+ Add Row</button>
+      </section>
+
+      <!-- Notes + Totals -->
+      <div class="grid grid-2 gap-lg">
+        <section class="form-section">
+          <h2 class="section-title">Notes</h2>
+          <label class="field">
+            <textarea id="notes" rows="4" placeholder="Any additional notes…"></textarea>
+          </label>
+
+          <h2 class="section-title mt-lg">Payment Terms</h2>
+          <label class="field">
+            <textarea id="paymentTerms" rows="3">
+Payments not received within terms may be subject to a late fee of 1.5% per month (18% per annum).</textarea>
+          </label>
+        </section>
+
+        <section class="form-section totals-section">
+          <h2 class="section-title">Totals</h2>
+          <div class="totals-grid">
+            <span>Subtotal</span>
+            <span id="subtotalDisplay">$0.00</span>
+
+            <label class="field inline">
+              <span>Tax (%)</span>
+              <input type="number" id="taxRate" min="0" max="100" step="0.01" value="0" />
+            </label>
+            <span id="taxDisplay">$0.00</span>
+
+            <span class="total-label">Total</span>
+            <span id="totalDisplay" class="total-value">$0.00</span>
+
+            <span class="balance-label">Balance Due</span>
+            <span id="balanceDisplay" class="balance-value">$0.00</span>
+          </div>
+        </section>
+      </div>
+
+      <!-- Actions -->
+      <div class="form-actions">
+        <button type="button" id="previewBtn" class="btn btn-secondary">Preview PDF</button>
+        <button type="button" id="downloadBtn" class="btn btn-primary">Download Invoice</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Contenedor off-screen para render del PDF (siempre visible para html2canvas) -->
+  <div id="pdfContainer" aria-hidden="true">
+    <div id="invoicePreview" class="invoice-preview"></div>
+  </div>
+
+  <!-- ── PDF PREVIEW MODAL ─────────────────────────────────── -->
+  <div id="previewModal" class="modal" hidden aria-modal="true" role="dialog" aria-label="Invoice Preview">
+    <div class="modal-backdrop" id="modalBackdrop"></div>
+    <div class="modal-content">
+      <button class="modal-close" id="modalClose" aria-label="Close preview">✕</button>
+      <div id="invoicePreviewClone" class="invoice-preview"></div>
+      <div class="modal-footer">
+        <button type="button" id="modalDownloadBtn" class="btn btn-primary">Download Invoice</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- html2canvas + jsPDF (reemplazan html2pdf para control exacto por página) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
