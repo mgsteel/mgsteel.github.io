@@ -113,8 +113,9 @@ function getFormData() {
       description: v('projectDescription'),
     },
     items,
-    notes:        v('notes'),
-    paymentTerms: v('paymentTerms'),
+    notes:             v('notes'),
+    paymentTermsTitle: v('paymentTermsTitle'),
+    paymentTerms:      v('paymentTerms'),
     taxRate,
     subtotal,
     tax,
@@ -403,7 +404,7 @@ function bottomSectionHTML(data) {
           ${SVG_DOLLAR}
           <span style="font-weight:900;font-size:10px;color:#c0392b;letter-spacing:.06em;text-transform:uppercase;">PAYMENT TERMS</span>
         </div>
-        <div style="font-weight:700;font-size:10px;color:#111;margin-bottom:3px;">Net 15 Days</div>
+        <div style="font-weight:700;font-size:10px;color:#111;margin-bottom:3px;">${esc(data.paymentTermsTitle)}</div>
         <div style="color:#444;font-size:8.5px;line-height:1.5;">${esc(data.paymentTerms).replace(/\n/g,'<br/>')}</div>
       </div>
 

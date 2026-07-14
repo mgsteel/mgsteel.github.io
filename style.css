@@ -63,6 +63,7 @@ textarea { resize: vertical; }
   padding-bottom: .25rem;
 }
 .mt-lg { margin-top: 1rem; }
+.mt-sm { margin-top: .4rem; }
 
 /* ── Layout helpers ───────────────────────────────────────── */
 .grid { display: grid; gap: var(--gap); }
